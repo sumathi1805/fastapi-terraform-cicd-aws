@@ -1,0 +1,17 @@
+version: 0.2
+
+env:
+  parameter-store:
+    MYSQL_PASS: /python-app/mysql_pass
+    DOCKER_USER: /python-app/docker_user
+    DOCKER_PASS: /python-app/docker_pass
+
+phases:
+  build:
+    commands:
+      docker login -u $DOCKER_USER -p $DOCKER_PASS
+      docker build -t $DOCKER_USER/python-app:latest app
+      docker push $DOCKER_USER/python-app:latest
+      cd infra
+      terraform init
+      terraform apply -auto-approve
