@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  mysql-db:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS}
+      MYSQL_DATABASE: mydb
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  fastapi-app:
+    image: ${DOCKER_USER}/python-app:latest
+    environment:
+      DB_PASS: ${MYSQL_PASS}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql-db
+
+volumes:
+  mysql-data:
