@@ -3,8 +3,8 @@ provider "aws" {
 }
 
 resource "aws_key_pair" "app_key" {
-  key_name   = "fastapi-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  key_name   = "serverkey"
+  public_key = file("/home/ec2-user/.ssh/id_rsa.pub")
 }
 
 resource "aws_security_group" "app_sg" {
@@ -14,7 +14,7 @@ resource "aws_security_group" "app_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["YOUR_IP/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
