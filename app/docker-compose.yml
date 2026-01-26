@@ -10,7 +10,7 @@ services:
       - mysql-data:/var/lib/mysql
 
   fastapi-app:
-    build: ${DOCKER_USER}/python-app:latest
+    build: .
     environment:
       DB_HOST: mysql-db
       DB_USER: ${MYSQL_USER}
