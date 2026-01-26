@@ -3,8 +3,8 @@ provider "aws" {
 }
 
 resource "aws_key_pair" "app_key" {
-  key_name   = "serverkey"
-  public_key = file("/home/ec2-user/.ssh/id_rsa.pub")
+  key_name   = "fastapi-terraform"
+  public_key = file("/home/ec2-user/.ssh/fastapi_key.pub")
 }
 
 resource "aws_security_group" "app_sg" {
