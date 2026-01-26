@@ -1,10 +1,14 @@
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from db import save_user
+from db import save_user, init_db
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
