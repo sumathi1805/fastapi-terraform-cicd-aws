@@ -37,10 +37,15 @@ resource "aws_security_group" "app_sg" {
   }
 }
 
+data "aws_iam_instance_profile" "existing_profile" {
+  name = "ec2roleforcodedeploy_cicd "  # usually same as role name
+}
+
 resource "aws_instance" "app_ec2" {
   ami                    = var.ami_id
   instance_type          = "t3a.micro"
   vpc_security_group_ids = [aws_security_group.app_sg.id]
+  iam_instance_profile = data.aws_iam_instance_profile.existing_profile.name
 
   user_data = file("user_data.sh")
 
