@@ -1,0 +1,4 @@
+services:
+  fastapi-app:
+    build: .
+    image: ${DOCKER_USER}/fastapi-app:latest
