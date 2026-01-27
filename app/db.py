@@ -4,10 +4,9 @@ import time
 
 def get_connection():
     return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "mysql-db"),
-        user=os.getenv("DB_USER", "appuser"),
-        password=os.getenv("DB_PASS", "apppass"),
-        database=os.getenv("DB_NAME", "appdb")
+        user=os.environ["MYSQL_USER"],
+        password=os.environ["MYSQL_PASS"],
+        database=os.environ["MYSQL_DB"]
     )
 
 def init_db():
