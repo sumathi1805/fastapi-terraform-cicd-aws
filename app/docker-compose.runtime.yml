@@ -1,11 +1,13 @@
 services:
   mysql-db:
     image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS}
-      MYSQL_DATABASE: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASS}
+    env:
+      parameter-store:
+        MYSQL_PASS: /fastapi_app/mysqlpasswd
+        MYSQL_USER: /fastapi_app/nysqluser
+        MYSQL_DB: /fastapi_app/mysqldb
+        DOCKER_USER: /fastapi_app/dockeruser
+        DOCKER_PASS: /fastapi_app/docker_passwd
     volumes:
       - mysql-data:/var/lib/mysql
 
