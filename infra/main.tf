@@ -2,10 +2,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_key_pair" "app_key" {
-  key_name   = "fastapi-terraform"
-  public_key = file("/home/cloudshell-user/fastapi_key.pub")
-}
 
 resource "aws_security_group" "app_sg" {
   name = "fastapi-sg"
@@ -44,7 +40,6 @@ resource "aws_security_group" "app_sg" {
 resource "aws_instance" "app_ec2" {
   ami                    = var.ami_id
   instance_type          = "t3a.micro"
-  key_name               = aws_key_pair.app_key.key_name
   vpc_security_group_ids = [aws_security_group.app_sg.id]
 
   user_data = file("user_data.sh")
