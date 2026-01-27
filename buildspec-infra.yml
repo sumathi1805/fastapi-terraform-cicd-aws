@@ -1,1 +1,12 @@
+version: 0.2
 
+phases:
+  build:
+    commands:
+      cd infra
+      terraform init
+      terraform plan
+
+  post_build:
+    commands:
+      terraform apply -auto-approve
