@@ -1,19 +1,34 @@
 #!/bin/bash
-yum install -y docker
+set -e
+
+# Update system and install Docker
+yum update -y
+yum install -y docker awscli
 systemctl start docker
+systemctl enable docker
+usermod -aG docker ec2-user
 
-curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
--o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+# Install Docker Compose v2 plugin
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+# Create app directory
 mkdir -p /opt/app
 cd /opt/app
 
-# get secrets
-aws ssm get-parameter --name /fastapi_app/nysqluser --with-decryption --query Parameter.Value --output text > .env
-aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text >> .env
-aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text >> .env
+# Create .env file from SSM (dynamic, NOT in GitHub)
+echo "MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/mysqluser --with-decryption --query Parameter.Value --output text)" > .env
+echo "MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)" >> .env
+echo "MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)" >> .env
 
+# Optionally add Docker Hub creds if needed for private images
+echo "DOCKER_USER=$(aws ssm get-parameter --name /fastapi_app/dockeruser --with-decryption --query Parameter.Value --output text)" >> .env
+echo "DOCKER_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/docker_passwd --with-decryption --query Parameter.Value --output text)" >> .env
+
+chmod 600 .env  # secure the file
+
+# Pull & start containers
 docker compose -f docker-compose.runtime.yml pull
 docker compose -f docker-compose.runtime.yml up -d
-
