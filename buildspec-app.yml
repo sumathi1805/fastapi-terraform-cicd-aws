@@ -8,10 +8,11 @@ env:
 phases:
   pre_build:
     commands:
-      docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - echo Logging in to Docker Hub...
+      - docker login -u $DOCKER_USER -p $DOCKER_PASS
 
   build:
     commands:
-      cd app
-      docker compose -f docker-compose.ci.yml build
-      docker compose -f docker-compose.ci.yml push
+      - cd app
+      - docker compose -f docker-compose.ci.yml build
+      - docker compose -f docker-compose.ci.yml push
