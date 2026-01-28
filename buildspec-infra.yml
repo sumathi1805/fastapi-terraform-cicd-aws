@@ -3,10 +3,11 @@ version: 0.2
 phases:
   build:
     commands:
-      cd infra
-      terraform init
-      terraform plan
+      - set -x  # shows every command
+      - cd infra
+      - terraform init
+      - terraform plan
 
   post_build:
     commands:
-      terraform apply -auto-approve
+      - terraform apply -auto-approve
