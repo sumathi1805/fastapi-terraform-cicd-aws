@@ -14,6 +14,13 @@ curl -SL https://github.com/docker/compose/releases/latest/download/docker-compo
   -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+TERRAFORM_VERSION="1.7.7"
+curl -L https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip
+unzip terraform.zip
+chmod +x terraform
+mv terraform /usr/local/bin/
+terraform version
+
 # Create app directory
 mkdir -p /opt/app
 cd /opt/app
