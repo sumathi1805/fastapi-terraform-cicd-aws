@@ -1,0 +1,41 @@
+version: 0.2
+
+env:
+  parameter-store:
+    MYSQL_USER: /fastapi_app/mysqluser
+    MYSQL_PASSWORD: /fastapi_app/mysqlpasswd
+    MYSQL_DATABASE: /fastapi_app/mysqldb
+
+phases:
+  install:
+    commands:
+      - echo "Installing unzip (required for Terraform)..."
+      - yum install -y unzip curl
+      - echo "Downloading Terraform..."
+      - TERRAFORM_VERSION="1.7.7"
+      - curl -sSL https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -o terraform.zip
+      - echo "Verifying Terraform zip..."
+      - file terraform.zip
+      - unzip terraform.zip -d /usr/local/bin/
+      - chmod +x /usr/local/bin/terraform
+      - terraform version
+
+  pre_build:
+    commands:
+      - echo "Preparing Terraform workspace..."
+      - cd infra
+      - export TF_VAR_mysql_user=$MYSQL_USER
+      - export TF_VAR_mysql_password=$MYSQL_PASSWORD
+      - export TF_VAR_mysql_database=$MYSQL_DATABASE
+
+  build:
+    commands:
+      - echo "Initializing Terraform..."
+      - terraform init
+      - echo "Planning Terraform changes..."
+      - terraform plan -out=tfplan
+
+  post_build:
+    commands:
+      - echo "Applying Terraform changes..."
+      - terraform apply -auto-approve tfplan
