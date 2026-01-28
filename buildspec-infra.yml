@@ -1,6 +1,13 @@
 version: 0.2
 
 phases:
+  install:
+  commands:
+    - curl -L https://releases.hashicorp.com/terraform/1.7.7/terraform_1.7.7_linux_amd64.zip -o terraform.zip
+    - unzip terraform.zip
+    - chmod +x terraform
+    - mv terraform /usr/local/bin/
+    - terraform version
   build:
     commands:
       - cd infra
