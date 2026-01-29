@@ -3,10 +3,10 @@ version: 0.2
 phases:
   install:
     commands:
-      - yum install -y unzip
-      - curl -L https://releases.hashicorp.com/terraform/1.7.7/terraform_1.7.7_linux_amd64.zip -o terraform.zip
-      - unzip terraform.zip
-      - mv terraform /usr/local/bin/
+      - set -e
+      - yum install -y yum-utils
+      - yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+      - yum install -y terraform
       - terraform version
 
   pre_build:
