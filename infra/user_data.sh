@@ -17,6 +17,8 @@ chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
 # Create app directory
 mkdir -p /opt/app
+
+: <<'BLOCK'
 cd /opt/app
 
 # Create .env file from SSM (dynamic, NOT in GitHub)
@@ -33,3 +35,4 @@ chmod 600 .env  # secure the file
 # Pull & start containers
 docker compose -f docker-compose.runtime.yml pull
 docker compose -f docker-compose.runtime.yml up -d
+BLOCK
