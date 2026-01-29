@@ -1,0 +1,27 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DOCKER_USER: /fastapi_app/dockeruser
+    DOCKER_PASS: /fastapi_app/docker_passwd
+
+phases:
+  pre_build:
+    commands:
+      - echo "Logging into Docker..."
+      - docker login -u $DOCKER_USER -p $DOCKER_PASS
+
+  build:
+    commands:
+      - echo "Checking if app/* files changed..."
+      - |
+        if [[ -z "$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION~1 $CODEBUILD_RESOLVED_SOURCE_VERSION | grep '^app/')" ]]; then
+          echo "No app changes, skipping Docker build"
+          exit 0
+        fi
+      - cd app
+      - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker build -t mydockerhub/fastapi:$IMAGE_TAG .
+      - docker tag mydockerhub/fastapi:$IMAGE_TAG mydockerhub/fastapi:latest
+      - docker push mydockerhub/fastapi:$IMAGE_TAG
+      - docker push mydockerhub/fastapi:latest
