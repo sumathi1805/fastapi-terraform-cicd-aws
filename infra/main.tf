@@ -38,7 +38,7 @@ resource "aws_security_group" "app_sg" {
 }
 
 data "aws_iam_instance_profile" "existing_profile" {
-  name = "ec2roleforcodedeploy_cicd "  # usually same as role name
+  name = "ec2roleforcodedeploy_cicd"  # usually same as role name
 }
 
 resource "aws_instance" "app_ec2" {
