@@ -25,5 +25,4 @@ phases:
   post_build:
     commands:
       - echo "Applying Terraform..."
-      - cd infra
       - terraform apply -auto-approve tfplan
