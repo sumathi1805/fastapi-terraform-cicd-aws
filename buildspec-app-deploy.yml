@@ -26,7 +26,7 @@ phases:
       - MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
 
       - echo "Deploying image tag: $IMAGE_TAG"
-
+      - |
       - aws ssm send-command \
           --instance-ids "$INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
