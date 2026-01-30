@@ -14,9 +14,19 @@ curl -SL https://github.com/docker/compose/releases/latest/download/docker-compo
   -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+# ---------- Install AWS CLI v2 (for SSM) ----------
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+./aws/install
 
 # Create app directory
 mkdir -p /opt/app
+chown -R ec2-user:ec2-user /opt/app
+
+# ---------- Enable SSM Agent ----------
+systemctl enable amazon-ssm-agent
+systemctl start amazon-ssm-agent
+
 
 : <<'BLOCK'
 cd /opt/app
