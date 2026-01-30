@@ -2,42 +2,41 @@ version: 0.2
 
 env:
   variables:
-    EC2_TAG_NAME: "fastapi-ec2"  # tag used to identify your EC2
+    EC2_TAG_NAME: "fastapi-ec2"
     APP_DIR: "/opt/app"
 
 phases:
-  install:
-    runtime-versions:
-      python: 3.11
-    commands:
-      - echo "Installing AWS CLI v2..."
-      - curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      - unzip awscliv2.zip
-      - sudo ./aws/install
-      - aws --version
-
   build:
     commands:
-      - echo "Finding EC2 instance by tag $EC2_TAG_NAME..."
-      - INSTANCE_ID=$(aws ec2 describe-instances \
+      - echo "Finding EC2 instance..."
+      - |
+        INSTANCE_ID=$(aws ec2 describe-instances \
           --filters "Name=tag:Name,Values=$EC2_TAG_NAME" \
           --query "Reservations[].Instances[].InstanceId" \
           --output text)
-      - |
+
         if [ -z "$INSTANCE_ID" ]; then
           echo "EC2 instance not found. Skipping deploy."
           exit 0
         fi
-      - echo "Sending commands to EC2 $INSTANCE_ID via SSM..."
+
+      - echo "Fetching parameters from SSM..."
+      - MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/mysqluser --with-decryption --query Parameter.Value --output text)
+      - MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)
+      - MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
+
+      - echo "Deploying image tag: $IMAGE_TAG"
+
       - aws ssm send-command \
-          --instance-ids $INSTANCE_ID \
-          --document-name AWS-RunShellScript \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
           --comment "Deploy FastAPI app" \
-          --parameters 'commands=[
-            "cd '"$APP_DIR"'",
-            "echo MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/mysqluser --with-decryption --query Parameter.Value --output text) > .env",
-            "echo MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text) >> .env",
-            "echo MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text) >> .env",
-            "docker compose pull",
-            "docker compose up -d"
-          ]'
+          --parameters commands="[
+            \"cd $APP_DIR\",
+            \"echo IMAGE_TAG=$IMAGE_TAG > .env\",
+            \"echo MYSQL_USER=$MYSQL_USER >> .env\",
+            \"echo MYSQL_PASSWORD=$MYSQL_PASSWORD >> .env\",
+            \"echo MYSQL_DATABASE=$MYSQL_DATABASE >> .env\",
+            \"docker compose -f docker-compose.runtime.yml pull\",
+            \"docker compose -f docker-compose.runtime.yml up -d\"
+          ]"
