@@ -2,7 +2,7 @@ version: 0.2
 
 env:
   variables:
-    EC2_TAG_NAME: "fastapi-ec2"
+    EC2_TAG_NAME: "FastAPI-Docker-EC2"
     APP_DIR: "/opt/app"
 
 phases:
