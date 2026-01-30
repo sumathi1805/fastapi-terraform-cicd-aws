@@ -1,3 +1,15 @@
+terraform {
+  required_version = ">= 1.5.0"
+
+  backend "s3" {
+    bucket         = "terraform-state-bucket-us-east-1"       # replace with your S3 bucket
+    key            = "fastapi/terraform.tfstate"
+    region         = "us-east-1"
+  }
+}
+
+
+
 provider "aws" {
   region = "us-east-1"
 }
@@ -43,6 +55,7 @@ data "aws_iam_instance_profile" "existing_profile" {
 }
 
 resource "aws_instance" "app_ec2" {
+  count = length(data.aws_instances.existing_ec2.ids) > 0 ? 0 : 1
   ami                    = var.ami_id
   instance_type          = "t3a.micro"
   vpc_security_group_ids = [aws_security_group.app_sg.id]
