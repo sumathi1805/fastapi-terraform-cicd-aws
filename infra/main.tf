@@ -62,6 +62,12 @@ data "aws_instances" "existing_ec2" {
   }
 }
 
+# Fetch info about existing EC2 if it exists
+data "aws_instance" "existing_ec2_info" {
+  count       = length(data.aws_instances.existing_ec2.ids) > 0 ? 1 : 0
+  instance_id = length(data.aws_instances.existing_ec2.ids) > 0 ? data.aws_instances.existing_ec2.ids[0] : ""
+}
+
 resource "aws_instance" "app_ec2" {
   count = length(data.aws_instances.existing_ec2.ids) > 0 ? 0 : 1
   ami                    = var.ami_id
