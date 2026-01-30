@@ -58,7 +58,7 @@ data "aws_iam_instance_profile" "existing_profile" {
 data "aws_instances" "existing_ec2" {
   filter {
     name   = "tag:Name"
-    values = ["fastapi-ec2"]
+    values = ["FastAPI-Docker-EC2"]
   }
 }
 
@@ -72,7 +72,7 @@ resource "aws_instance" "app_ec2" {
   user_data = file("user_data.sh")
 
   tags = {
-    Name = "fastapi-ec2"
+    Name = "FastAPI-Docker-EC2"
     Env  = var.environment
   }
 }
