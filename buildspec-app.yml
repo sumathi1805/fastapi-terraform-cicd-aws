@@ -22,7 +22,8 @@ phases:
 
   build:
     commands:
-      - docker build -t "$DOCKER_USER/fastapi-app:$IMAGE_TAG" -f app/Dockerfile app/
+      - cd app
+      - docker build -t "$DOCKER_USER/fastapi-app:$IMAGE_TAG" .
       - docker tag $DOCKER_USER/fastapi-app:$IMAGE_TAG $DOCKER_USER/fastapi-app:stable
 
   post_build:
