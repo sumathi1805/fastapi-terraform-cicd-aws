@@ -72,7 +72,7 @@ resource "aws_instance" "app_ec2" {
   user_data = file("user_data.sh")
 
   tags = {
-    Name = "FastAPI-Docker-EC2"
+    Name = "fastapi-ec2"
     Env  = var.environment
   }
 }
