@@ -6,22 +6,28 @@ env:
     DOCKER_PASS: /fastapi_app/docker_passwd
 
 phases:
+  install:
+    runtime-versions:
+      docker: 24
+
   pre_build:
     commands:
-      - echo "Logging into Docker..."
-      - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - echo "Logging in to Docker Hub"
+      - echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - echo "IMAGE_TAG=$IMAGE_TAG"
 
   build:
     commands:
-      - echo "Checking if app/* files changed..."
-      - |
-        if [[ -z "$(git diff --name-only $CODEBUILD_RESOLVED_SOURCE_VERSION~1 $CODEBUILD_RESOLVED_SOURCE_VERSION | grep '^app/')" ]]; then
-          echo "No app changes, skipping Docker build"
-          exit 0
-        fi
-      - cd app
-      - IMAGE_TAG=$CODEBUILD_RESOLVED_SOURCE_VERSION
-      - docker build -t mydockerhub/fastapi:$IMAGE_TAG .
-      - docker tag mydockerhub/fastapi:$IMAGE_TAG mydockerhub/fastapi:latest
-      - docker push mydockerhub/fastapi:$IMAGE_TAG
-      - docker push mydockerhub/fastapi:latest
+      - docker build -t $DOCKER_USER/fastapi-app:$IMAGE_TAG .
+      - docker tag $DOCKER_USER/fastapi-app:$IMAGE_TAG $DOCKER_USER/fastapi-app:stable
+
+  post_build:
+    commands:
+      - docker push $DOCKER_USER/fastapi-app:$IMAGE_TAG
+      - docker push $DOCKER_USER/fastapi-app:stable
+      - echo "IMAGE_TAG=$IMAGE_TAG" > image.env
+
+artifacts:
+  files:
+    - image.env
