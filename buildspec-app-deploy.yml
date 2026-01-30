@@ -25,18 +25,17 @@ phases:
       - MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)
       - MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
 
-      - echo "Deploying image tag: $IMAGE_TAG"
+      - echo "Deploying image tag: $IMAGE_TAG via deploy.sh"
       - |
-      - aws ssm send-command \
+        aws ssm send-command \
           --instance-ids "$INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
           --comment "Deploy FastAPI app" \
-          --parameters commands="[
-            \"cd $APP_DIR\",
-            \"echo IMAGE_TAG=$IMAGE_TAG > .env\",
-            \"echo MYSQL_USER=$MYSQL_USER >> .env\",
-            \"echo MYSQL_PASSWORD=$MYSQL_PASSWORD >> .env\",
-            \"echo MYSQL_DATABASE=$MYSQL_DATABASE >> .env\",
-            \"docker compose -f docker-compose.runtime.yml pull\",
-            \"docker compose -f docker-compose.runtime.yml up -d\"
-          ]"
+          --parameters 'commands=[
+            "chmod +x '"$APP_DIR"'/deploy.sh",
+            "IMAGE_TAG='"$IMAGE_TAG"' MYSQL_USER='"$MYSQL_USER"' MYSQL_PASSWORD='"$MYSQL_PASSWORD"' MYSQL_DATABASE='"$MYSQL_DATABASE"' bash '"$APP_DIR"'/deploy.sh"
+          ]'
+
+artifacts:
+  files:
+    - image.env
