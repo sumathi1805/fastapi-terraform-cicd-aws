@@ -2,7 +2,6 @@ version: 0.2
 
 env:
   variables:
-    EC2_TAG_NAME: "FastAPI-Docker-EC2"
     APP_DIR: "/opt/app"
 
 phases:
@@ -14,38 +13,43 @@ phases:
           unzip awscliv2.zip;
           sudo ./aws/install;
         fi
-
-  build:
+  pre_build:
     commands:
-      - echo "Finding EC2 instance by tag..."
+      - echo "Fetching EC2 instance ID from Terraform output..."
+      - INSTANCE_ID=$(terraform output -raw ec2_instance_id || echo "")
       - |
-        INSTANCE_ID=$(aws ec2 describe-instances \
-          --filters "Name=tag:Name,Values=$EC2_TAG_NAME" \
-          --query "Reservations[].Instances[].InstanceId" \
-          --output text)
-
         if [ -z "$INSTANCE_ID" ]; then
           echo "EC2 instance not found. Skipping deploy."
           exit 0
         fi
+      - echo "EC2 instance ID: $INSTANCE_ID"
 
-        echo "Fetching parameters from SSM..."
-        MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/mysqluser --with-decryption --query Parameter.Value --output text)
-        MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)
-        MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
+      - echo "Fetching parameters from SSM..."
+      - MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/mysqluser --with-decryption --query Parameter.Value --output text)
+      - MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)
+      - MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
 
-        echo "Deploying Docker image tag: $IMAGE_TAG on EC2 $INSTANCE_ID"
-
-        # Execute deploy.sh on EC2 via SSM
+  build:
+    commands:
+      - echo "Deploying FastAPI app on EC2 $INSTANCE_ID..."
+      - |
         aws ssm send-command \
           --instance-ids "$INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
           --comment "Deploy FastAPI app" \
           --parameters commands="[
-            \"chmod +x $APP_DIR/deploy.sh\",
-            \"IMAGE_TAG=$IMAGE_TAG MYSQL_USER=$MYSQL_USER MYSQL_PASSWORD=$MYSQL_PASSWORD MYSQL_DATABASE=$MYSQL_DATABASE bash $APP_DIR/deploy.sh\"
-          ]" \
-          --output text
+            \"cd $APP_DIR\",
+            \"echo IMAGE_TAG=$IMAGE_TAG > .env\",
+            \"echo MYSQL_USER=$MYSQL_USER >> .env\",
+            \"echo MYSQL_PASSWORD=$MYSQL_PASSWORD >> .env\",
+            \"echo MYSQL_DATABASE=$MYSQL_DATABASE >> .env\",
+            \"docker compose -f docker-compose.runtime.yml pull\",
+            \"docker compose -f docker-compose.runtime.yml up -d\"
+          ]"
+
+  post_build:
+    commands:
+      - echo "Deploy stage completed."
 
 artifacts:
   files:
