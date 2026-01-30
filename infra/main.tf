@@ -4,7 +4,8 @@ provider "aws" {
 
 
 resource "aws_security_group" "app_sg" {
-  name = "fastapi-sg"
+  name_prefix = "fastapi-sg-"          # avoids duplicate name error
+  description = "Security group for FastAPI app"
 
   ingress {
     from_port   = 22
@@ -51,6 +52,7 @@ resource "aws_instance" "app_ec2" {
 
   tags = {
     Name = "FastAPI-Docker-EC2"
+    Env  = var.environment
   }
 }
 
