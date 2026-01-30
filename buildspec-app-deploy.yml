@@ -19,11 +19,7 @@ phases:
     commands:
       - echo "Fetching EC2 instance ID from Terraform output..."
       - INSTANCE_ID=$(terraform output -raw ec2_instance_id || echo "")
-      - |
-        if [ -z "$INSTANCE_ID" ]; then
-          echo "EC2 instance not found. Skipping deploy."
-          exit 0
-        fi
+      - if [ -z "$INSTANCE_ID" ]; then echo "EC2 instance not found. Skipping deploy."; exit 0; fi
       - echo "EC2 instance ID: $INSTANCE_ID"
       - echo "Fetching parameters from SSM..."
       - MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/mysqluser --with-decryption --query Parameter.Value --output text)
