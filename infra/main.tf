@@ -54,6 +54,14 @@ data "aws_iam_instance_profile" "existing_profile" {
   name = "ec2roleforcodedeploy_cicd"  # usually same as role name
 }
 
+# Data resource to check if EC2 exists
+data "aws_instances" "existing_ec2" {
+  filter {
+    name   = "tag:Name"
+    values = ["fastapi-ec2"]
+  }
+}
+
 resource "aws_instance" "app_ec2" {
   count = length(data.aws_instances.existing_ec2.ids) > 0 ? 0 : 1
   ami                    = var.ami_id
