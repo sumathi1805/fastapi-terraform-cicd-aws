@@ -1,4 +1,8 @@
+version: "3.9"
+
 services:
   fastapi-app:
-    build: .
-    image: ${DOCKER_USER}/fastapi-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ${DOCKER_USER}/fastapi-app:${IMAGE_TAG}
