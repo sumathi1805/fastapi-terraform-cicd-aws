@@ -22,7 +22,7 @@ phases:
 
       # ---------- Read IMAGE_TAG from artifact ----------
       - echo "Reading IMAGE_TAG from artifact..."
-      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR/image.env | cut -d'=' -f2)
+      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR_1/image.env | cut -d'=' -f2)
       - echo "IMAGE_TAG=$IMAGE_TAG"
 
   build:
@@ -37,7 +37,7 @@ phases:
           --comment "Deploy FastAPI app" \
           --parameters commands="[
             \"mkdir -p $APP_DIR\",
-            \"cp $CODEBUILD_SRC_DIR/docker-compose.runtime.yml $APP_DIR/docker-compose.runtime.yml\",
+            \"cp $CODEBUILD_SRC_DIR_1/docker-compose.runtime.yml $APP_DIR/docker-compose.runtime.yml\",
             \"cd $APP_DIR\",
             \"echo 'IMAGE_TAG=$IMAGE_TAG' > .env\",
             \"echo 'MYSQL_USER=$MYSQL_USER' >> .env\",
