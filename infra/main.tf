@@ -81,5 +81,10 @@ resource "aws_instance" "app_ec2" {
     Name = "FastAPI-Docker-EC2"
     Env  = var.environment
   }
+
+  lifecycle {
+  ignore_changes = [user_data]
+  }
+
 }
 
