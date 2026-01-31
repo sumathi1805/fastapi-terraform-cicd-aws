@@ -1,0 +1,80 @@
+version: 0.2
+
+env:
+  variables:
+    APP_DIR: "/opt/app"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Fetching EC2 instance by Terraform output..."
+      - INSTANCE_ID=$(terraform output -raw ec2_instance_id || echo "")
+      - |
+        if [ -z "$INSTANCE_ID" ]; then
+          echo "EC2 instance not found. Skipping deploy."
+          exit 0
+        fi
+      - echo "EC2 instance ID: $INSTANCE_ID"
+
+      - echo "Fetching parameters from SSM..."
+      - MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/nysqluser --with-decryption --query Parameter.Value --output text)
+      - MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)
+      - MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
+      - DOCKER_USER=$(aws ssm get-parameter --name /fastapi_app/dockeruser --with-decryption --query Parameter.Value --output text)
+
+  build:
+    commands:
+      - echo "Deploying FastAPI app on EC2 $INSTANCE_ID..."
+
+      # ---------- Copy docker-compose.runtime.yml ----------
+      - |
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --comment "Deploy FastAPI app" \
+          --parameters commands="[
+            \"mkdir -p $APP_DIR\",
+            \"cat <<'EOF' > $APP_DIR/docker-compose.runtime.yml
+services:
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+      MYSQL_DATABASE: $MYSQL_DATABASE
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  fastapi-app:
+    image: ${DOCKER_USER}/fastapi-app:${IMAGE_TAG}
+    environment:
+      DB_HOST: mysql-db
+      DB_USER: $MYSQL_USER
+      DB_PASS: $MYSQL_PASSWORD
+      DB_NAME: $MYSQL_DATABASE
+    ports:
+      - '8000:8000'
+    depends_on:
+      - mysql-db
+
+volumes:
+  mysql-data:
+EOF\",
+            \"cd $APP_DIR\",
+            \"cat <<EOF > .env
+IMAGE_TAG=stable
+MYSQL_USER=$MYSQL_USER
+MYSQL_PASSWORD=$MYSQL_PASSWORD
+MYSQL_DATABASE=$MYSQL_DATABASE
+DOCKER_USER=$DOCKER_USER
+EOF\",
+            \"docker compose -f docker-compose.runtime.yml pull\",
+            \"docker compose -f docker-compose.runtime.yml up -d\"
+          ]"
+
+  post_build:
+    commands:
+      - echo "Deploy completed successfully."
+
+artifacts:
+  files: []  # No artifacts needed for deploy stage
