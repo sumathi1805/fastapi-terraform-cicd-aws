@@ -17,8 +17,8 @@ phases:
 
   pre_build:
     commands:
-      - echo "Fetching EC2 instance ID from Terraform output..."
-      - INSTANCE_ID=$(terraform output -raw ec2_instance_id || echo "")
+      - echo "Fetching EC2 instance by tag..."
+      - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=FastAPI-Docker-EC2" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
       - if [ -z "$INSTANCE_ID" ]; then echo "EC2 instance not found. Skipping deploy."; exit 0; fi
       - echo "EC2 instance ID:$INSTANCE_ID"
       - echo "Fetching parameters from SSM..."
