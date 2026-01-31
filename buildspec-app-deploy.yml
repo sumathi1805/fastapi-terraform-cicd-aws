@@ -8,7 +8,7 @@ phases:
   pre_build:
     commands:
       - echo "Listing files in input artifact..."
-      - ls -R $CODEBUILD_SRC_DIR
+      - ls -R $CODEBUILD_SRC_DIR_1
       - echo "Fetching EC2 instance by tag..."
       # Query AWS for EC2 instance ID with the given tag
       - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=FastAPI-Docker-EC2" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
@@ -37,7 +37,7 @@ phases:
           --comment "Deploy FastAPI app" \
           --parameters commands="[
             \"mkdir -p $APP_DIR\",
-            \"cp $CODEBUILD_SRC_DIR_1/docker-compose.runtime.yml $APP_DIR/docker-compose.runtime.yml\",
+            \"cp $CODEBUILD_SRC_DIR_1/app/docker-compose.runtime.yml $APP_DIR/docker-compose.runtime.yml\",
             \"cd $APP_DIR\",
             \"echo 'IMAGE_TAG=$IMAGE_TAG' > .env\",
             \"echo 'MYSQL_USER=$MYSQL_USER' >> .env\",
