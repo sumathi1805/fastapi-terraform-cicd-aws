@@ -48,8 +48,3 @@ phases:
     commands:
       - echo "Deploy stage completed."
 
-artifacts:
-  files:
-    - image.env
-  optional:true
-
