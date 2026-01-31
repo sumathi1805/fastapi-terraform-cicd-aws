@@ -7,6 +7,8 @@ env:
 phases:
   pre_build:
     commands:
+      - echo "Listing files in input artifact..."
+      - ls -R $CODEBUILD_SRC_DIR
       - echo "Fetching EC2 instance by tag..."
       # Query AWS for EC2 instance ID with the given tag
       - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=FastAPI-Docker-EC2" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
