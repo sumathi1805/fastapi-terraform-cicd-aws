@@ -32,7 +32,6 @@ phases:
       - docker push $DOCKER_USER/fastapi-app:$IMAGE_TAG
       - docker push $DOCKER_USER/fastapi-app:stable
       - echo "IMAGE_TAG=$IMAGE_TAG" > ./app/image.env
-      - cp ./app/docker-compose.runtime.yml ./app/docker-compose.runtime.yml
 
 artifacts:
   files:
