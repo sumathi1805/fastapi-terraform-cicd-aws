@@ -22,7 +22,7 @@ phases:
 
       # ---------- Read IMAGE_TAG from artifact ----------
       - echo "Reading IMAGE_TAG from artifact..."
-      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR_1/image.env | cut -d'=' -f2)
+      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR_1/app/image.env | cut -d'=' -f2)
       - echo "IMAGE_TAG=$IMAGE_TAG"
 
   build:
