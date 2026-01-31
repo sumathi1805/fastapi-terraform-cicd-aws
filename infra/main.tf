@@ -83,7 +83,12 @@ resource "aws_instance" "app_ec2" {
   }
 
   lifecycle {
-  ignore_changes = [user_data]
+    prevent_destroy = true
+    ignore_changes = [
+      user_data,
+      ami,
+      tags
+    ]
   }
 
 }
