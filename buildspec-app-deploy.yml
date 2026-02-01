@@ -1,0 +1,57 @@
+version: 0.2
+
+env:
+  variables:
+    APP_DIR: "/opt/app"
+    IMAGE_TAG: "stable"
+
+phases:
+  pre_build:
+    commands:
+      - echo "Listing files in input artifact..."
+      - ls -R ${CODEBUILD_SRC_DIR_buildartifact}
+      - echo "Fetching EC2 instance by tag..."
+      # Query AWS for EC2 instance ID with the given tag
+      - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=FastAPI-Docker-EC2" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
+      - if [ -z "$INSTANCE_ID" ]; then echo "EC2 instance not found. Skipping deploy."; exit 0; fi
+      - echo "EC2 instance ID:$INSTANCE_ID"
+      - echo "Fetching parameters from SSM..."
+      - MYSQL_USER=$(aws ssm get-parameter --name /fastapi_app/nysqluser --with-decryption --query Parameter.Value --output text)
+      - MYSQL_PASSWORD=$(aws ssm get-parameter --name /fastapi_app/mysqlpasswd --with-decryption --query Parameter.Value --output text)
+      - MYSQL_DATABASE=$(aws ssm get-parameter --name /fastapi_app/mysqldb --with-decryption --query Parameter.Value --output text)
+      - DOCKER_USER=$(aws ssm get-parameter --name /fastapi_app/dockeruser --with-decryption --query Parameter.Value --output text)
+
+      # ---------- Read IMAGE_TAG from artifact ----------
+      # SourceArtifact (Primary) is at $CODEBUILD_SRC_DIR
+      # BuildArtifact (Secondary) is at ${CODEBUILD_SRC_DIR_app-built-output}
+      
+      - echo "Reading IMAGE_TAG from artifact..."
+      - IMAGE_TAG=$(grep IMAGE_TAG ${CODEBUILD_SRC_DIR_buildartifact}/image.env | cut -d'=' -f2)
+      - echo "IMAGE_TAG=$IMAGE_TAG"
+  
+  build:
+    commands:
+      - echo "Encoding the compose file to a safe Base64 string..."
+      # 1. We turn the file into a single line of safe text
+      - COMPOSE_BASE64=$(base64 -w 0 $CODEBUILD_SRC_DIR_buildartifact/app/docker-compose.runtime.yml)
+
+      - echo "Sending command to EC2..."
+      - |
+        aws ssm send-command \
+          --instance-ids "$INSTANCE_ID" \
+          --document-name "AWS-RunShellScript" \
+          --comment "Deploy FastAPI app" \
+          --parameters commands="[
+            \"sudo mkdir -p $APP_DIR\",
+            \"sudo chown -R ec2-user:ec2-user $APP_DIR\",
+            # 2. Decode it back to its original YAML form on the EC2
+            \"echo '$COMPOSE_BASE64' | base64 -d | sudo tee $APP_DIR/docker-compose.runtime.yml > /dev/null\",
+            \"cd $APP_DIR\",
+            \"echo 'IMAGE_TAG=$IMAGE_TAG' | sudo tee .env > /dev/null\",
+            \"echo 'DOCKER_USER=$DOCKER_USER' | sudo tee -a .env > /dev/null\",
+            \"echo 'MYSQL_USER=$MYSQL_USER' | sudo tee -a .env > /dev/null\",
+            \"echo 'MYSQL_PASSWORD=$MYSQL_PASSWORD' | sudo tee -a .env > /dev/null\",
+            \"echo 'MYSQL_DATABASE=$MYSQL_DATABASE' | sudo tee -a .env > /dev/null\",
+            \"sudo docker compose -f docker-compose.runtime.yml pull\",
+            \"sudo docker compose -f docker-compose.runtime.yml up -d\"
+          ]"
