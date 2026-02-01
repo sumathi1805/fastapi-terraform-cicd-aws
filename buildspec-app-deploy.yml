@@ -44,7 +44,7 @@ phases:
             \"mkdir -p $APP_DIR\",
             \"echo '$COMPOSE_CONTENT' > $APP_DIR/docker-compose.runtime.yml\",
             \"ls -la $APP_DIR\",
-            \"cat $APP_DIR/docker-compose.runtime.yml\"
+            \"cat $APP_DIR/docker-compose.runtime.yml\",
             \"cd $APP_DIR\",
             \"echo 'IMAGE_TAG=$IMAGE_TAG' > .env\",
             \"echo 'MYSQL_USER=$MYSQL_USER' >> .env\",
