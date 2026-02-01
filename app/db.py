@@ -4,6 +4,7 @@ import time
 
 def get_connection():
     return mysql.connector.connect(
+        host=os.getenv("DB_HOST", "mysql-db"), # Tell Python to look for the service name
         user=os.environ["MYSQL_USER"],
         password=os.environ["MYSQL_PASS"],
         database=os.environ["MYSQL_DB"]
