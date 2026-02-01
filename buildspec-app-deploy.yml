@@ -21,13 +21,17 @@ phases:
       - DOCKER_USER=$(aws ssm get-parameter --name /fastapi_app/dockeruser --with-decryption --query Parameter.Value --output text)
 
       # ---------- Read IMAGE_TAG from artifact ----------
+      # SourceArtifact (Primary) is at $CODEBUILD_SRC_DIR
+      # BuildArtifact (Secondary) is at $CODEBUILD_SRC_DIR_BuildArtifact
+      
       - echo "Reading IMAGE_TAG from artifact..."
-      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR_1/app/image.env | cut -d'=' -f2)
+      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR_app-built-output/app/image.env | cut -d'=' -f2)
       - echo "IMAGE_TAG=$IMAGE_TAG"
 
   build:
     commands:
       - echo "Deploying FastAPI app on EC2 $INSTANCE_ID..."
+      - COMPOSE_CONTENT=$(cat $CODEBUILD_SRC_DIR_app-built-output/app/docker-compose.runtime.yml)
 
       # ---------- Copy docker-compose.runtime.yml from artifact and deploy ----------
       - |
@@ -37,7 +41,7 @@ phases:
           --comment "Deploy FastAPI app" \
           --parameters commands="[
             \"mkdir -p $APP_DIR\",
-            \"cp $CODEBUILD_SRC_DIR_1/app/docker-compose.runtime.yml $APP_DIR/docker-compose.runtime.yml\",
+            \"echo '$COMPOSE_CONTENT' > $APP_DIR/docker-compose.runtime.yml\",
             \"cd $APP_DIR\",
             \"echo 'IMAGE_TAG=$IMAGE_TAG' > .env\",
             \"echo 'MYSQL_USER=$MYSQL_USER' >> .env\",
