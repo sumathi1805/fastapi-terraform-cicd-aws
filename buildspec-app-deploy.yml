@@ -32,7 +32,7 @@ phases:
   build:
     commands:
       - echo "Deploying FastAPI app on EC2 $INSTANCE_ID..."
-      # - COMPOSE_CONTENT=$(cat ${CODEBUILD_SRC_DIR_1}/app/docker-compose.runtime.yml)
+      - COMPOSE_CONTENT=$(cat ${CODEBUILD_SRC_DIR_buildartifact}/app/docker-compose.runtime.yml)
 
       # ---------- Copy docker-compose.runtime.yml from artifact and deploy ----------
       - |
@@ -42,7 +42,9 @@ phases:
           --comment "Deploy FastAPI app" \
           --parameters commands="[
             \"mkdir -p $APP_DIR\",
-            \"cp $CODEBUILD_SRC_DIR_buildartifact/app/docker-compose.runtime.yml $APP_DIR/docker-compose.runtime.yml\",
+            \"echo '$COMPOSE_CONTENT' > $APP_DIR/docker-compose.runtime.yml\",
+            \"ls -la $APP_DIR\",
+            \"cat $APP_DIR/docker-compose.runtime.yml\"
             \"cd $APP_DIR\",
             \"echo 'IMAGE_TAG=$IMAGE_TAG' > .env\",
             \"echo 'MYSQL_USER=$MYSQL_USER' >> .env\",
