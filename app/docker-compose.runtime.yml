@@ -17,10 +17,10 @@ services:
   fastapi-app:
     image: ${DOCKER_USER}/fastapi-app:${IMAGE_TAG}
     environment:
-      DB_HOST: mysql-db
-      DB_USER: ${MYSQL_USER}
-      DB_PASS: ${MYSQL_PASSWORD}
-      DB_NAME: ${MYSQL_DATABASE}
+      - DB_HOST=mysql-db
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASS=${MYSQL_PASSWORD}  # Maps MYSQL_PASSWORD from .env to MYSQL_PASS for Python
+      - MYSQL_DB=${MYSQL_DATABASE}
     ports:
       - "8000:8000"
     depends_on:
