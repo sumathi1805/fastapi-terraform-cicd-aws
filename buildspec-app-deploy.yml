@@ -28,11 +28,9 @@ phases:
       - echo "Reading IMAGE_TAG from artifact..."
       - IMAGE_TAG=$(grep IMAGE_TAG ${CODEBUILD_SRC_DIR_buildartifact}/image.env | cut -d'=' -f2)
       - echo "IMAGE_TAG=$IMAGE_TAG"
-  
   build:
     commands:
-      - echo "Encoding the compose file to a safe Base64 string..."
-      # 1. We turn the file into a single line of safe text
+      - echo "Encoding the compose file..."
       - COMPOSE_BASE64=$(base64 -w 0 $CODEBUILD_SRC_DIR_buildartifact/app/docker-compose.runtime.yml)
 
       - echo "Sending command to EC2..."
@@ -41,17 +39,17 @@ phases:
           --instance-ids "$INSTANCE_ID" \
           --document-name "AWS-RunShellScript" \
           --comment "Deploy FastAPI app" \
-          --parameters commands="[
-            \"sudo mkdir -p $APP_DIR\",
-            \"sudo chown -R ec2-user:ec2-user $APP_DIR\",
-            # 2. Decode it back to its original YAML form on the EC2
-            \"echo '$COMPOSE_BASE64' | base64 -d | sudo tee $APP_DIR/docker-compose.runtime.yml > /dev/null\",
-            \"cd $APP_DIR\",
-            \"echo 'IMAGE_TAG=$IMAGE_TAG' | sudo tee .env > /dev/null\",
-            \"echo 'DOCKER_USER=$DOCKER_USER' | sudo tee -a .env > /dev/null\",
-            \"echo 'MYSQL_USER=$MYSQL_USER' | sudo tee -a .env > /dev/null\",
-            \"echo 'MYSQL_PASSWORD=$MYSQL_PASSWORD' | sudo tee -a .env > /dev/null\",
-            \"echo 'MYSQL_DATABASE=$MYSQL_DATABASE' | sudo tee -a .env > /dev/null\",
-            \"sudo docker compose -f docker-compose.runtime.yml pull\",
-            \"sudo docker compose -f docker-compose.runtime.yml up -d\"
-          ]"
+          --parameters commands=[ \
+            \"sudo mkdir -p $APP_DIR\", \
+            \"sudo chown -R ec2-user:ec2-user $APP_DIR\", \
+            \"echo '$COMPOSE_BASE64' | base64 -d | sudo tee $APP_DIR/docker-compose.runtime.yml > /dev/null\", \
+            \"cd $APP_DIR\", \
+            \"echo 'IMAGE_TAG=$IMAGE_TAG' | sudo tee .env > /dev/null\", \
+            \"echo 'DOCKER_USER=$DOCKER_USER' | sudo tee -a .env > /dev/null\", \
+            \"echo 'MYSQL_USER=$MYSQL_USER' | sudo tee -a .env > /dev/null\", \
+            \"echo 'MYSQL_PASSWORD=$MYSQL_PASSWORD' | sudo tee -a .env > /dev/null\", \
+            \"echo 'MYSQL_DATABASE=$MYSQL_DATABASE' | sudo tee -a .env > /dev/null\", \
+            \"sudo docker compose -f docker-compose.runtime.yml pull\", \
+            \"sudo docker compose -f docker-compose.runtime.yml up -d\" \
+          ]  
+  
