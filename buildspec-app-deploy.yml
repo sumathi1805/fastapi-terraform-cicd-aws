@@ -8,7 +8,7 @@ phases:
   pre_build:
     commands:
       - echo "Listing files in input artifact..."
-      - ls -R $CODEBUILD_SRC_DIR_1
+      - ls -R $CODEBUILD_SRC_DIR_app-built-output
       - echo "Fetching EC2 instance by tag..."
       # Query AWS for EC2 instance ID with the given tag
       - INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=FastAPI-Docker-EC2" "Name=instance-state-name,Values=running" --query "Reservations[].Instances[].InstanceId" --output text)
@@ -25,13 +25,13 @@ phases:
       # BuildArtifact (Secondary) is at $CODEBUILD_SRC_DIR_BuildArtifact
       
       - echo "Reading IMAGE_TAG from artifact..."
-      - IMAGE_TAG=$(grep IMAGE_TAG $CODEBUILD_SRC_DIR_app-built-output/app/image.env | cut -d'=' -f2)
+      - IMAGE_TAG=$(grep IMAGE_TAG ${CODEBUILD_SRC_DIR_app-built-output}/app/image.env | cut -d'=' -f2)
       - echo "IMAGE_TAG=$IMAGE_TAG"
 
   build:
     commands:
       - echo "Deploying FastAPI app on EC2 $INSTANCE_ID..."
-      - COMPOSE_CONTENT=$(cat $CODEBUILD_SRC_DIR_app-built-output/app/docker-compose.runtime.yml)
+      - COMPOSE_CONTENT=$(cat ${CODEBUILD_SRC_DIR_app-built-output}/app/docker-compose.runtime.yml)
 
       # ---------- Copy docker-compose.runtime.yml from artifact and deploy ----------
       - |
