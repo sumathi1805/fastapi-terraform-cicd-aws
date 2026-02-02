@@ -1,4 +1,4 @@
-tailsfrom fastapi import FastAPI, Form, Request
+from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from db import save_user, init_db
