@@ -1,1 +1,1 @@
-# fastapi-terraform-cicd-aws
+# fastapi-terraform-cicd-aws project automtic flow
