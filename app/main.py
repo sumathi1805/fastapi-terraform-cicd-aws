@@ -21,4 +21,4 @@ def login(request: Request,
           password: str = Form(...)):
     save_user(username, password)
     return templates.TemplateResponse("login.html",
-        {"request": request, "message": "Users details saved successfully!! hooray!!!})
+        {"request": request, "message": "Users details saved successfully!! hooray!!!"})
