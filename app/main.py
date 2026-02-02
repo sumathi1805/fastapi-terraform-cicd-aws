@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, Request
+tailsfrom fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from db import save_user, init_db
@@ -21,4 +21,4 @@ def login(request: Request,
           password: str = Form(...)):
     save_user(username, password)
     return templates.TemplateResponse("login.html",
-        {"request": request, "message": "User saved successfully"})
+        {"request": request, "message": "User details saved successfully.... Thanks for adding"})
