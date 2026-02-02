@@ -26,5 +26,4 @@ phases:
     commands:
       - echo "Applying Terraform..."
       - terraform apply -auto-approve tfplan
-      - echo "Infra complete. Starting App Build..."
-      - aws codebuild start-build --project-name fastapi-app-deploy
+      
