@@ -104,7 +104,17 @@ Creates or updates AWS networking, compute, and IAM resources
       * Blue/Green deployments
       * RDS instead of containerized MySQL
       
+## ⚠️ Challenges & Learnings
 
+### Challenges
+- Integrating Docker build process with AWS CodePipeline
+- Managing IAM roles and permissions for CI/CD services
+- Debugging deployment failures in CodeBuild and pipeline stages
+
+### Learnings
+- Learned end-to-end CI/CD pipeline setup on AWS
+- Gained experience in containerizing applications using Docker
+- Improved understanding of automated deployments and pipeline workflows
 
   
 
