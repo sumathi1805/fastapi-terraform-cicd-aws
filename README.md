@@ -19,7 +19,8 @@ This project demonstrates a production-style CI/CD pipeline for a FastAPI applic
 
             User → ALB → EC2 (FastAPI on Docker) → MySQL
 
-## Tools and Services used
+## Technology used
+
       Cloud Provider     --------->	 AWS
       IaC	               --------->  Terraform
       CI/CD	             --------->  AWS CodePipeline, CodeBuild
